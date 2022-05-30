@@ -20,7 +20,7 @@ class SPPUtil private constructor(context: Context) {
     private val mAdapter: BluetoothAdapter =
         (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
 
-    private val sppUUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+    private val sppUUID: UUID = UUID.fromString("78DB4F90-DDF7-4A83-92E9-3CE422C89975")
 
     private var connecting = false
 
@@ -28,7 +28,7 @@ class SPPUtil private constructor(context: Context) {
 
     private var outputStream: OutputStream? = null
 
-    private var bleSocket: BluetoothSocket? = null
+    private var mBluetoothSocket: BluetoothSocket? = null
 
     companion object {
         private var instance: SPPUtil? = null
@@ -67,21 +67,20 @@ class SPPUtil private constructor(context: Context) {
         if (connecting) {
             return
         }
-        bleSocket = device.createInsecureRfcommSocketToServiceRecord(sppUUID)
+        mBluetoothSocket = device.createInsecureRfcommSocketToServiceRecord(sppUUID)
         connecting = true
         Thread {
             try {
-                bleSocket!!.connect()
+                mBluetoothSocket!!.connect()
                 sppInterface?.connected()
-                val inputStream = bleSocket!!.inputStream
-                outputStream = bleSocket!!.outputStream
+                val inputStream = mBluetoothSocket!!.inputStream
+                outputStream = mBluetoothSocket!!.outputStream
                 while (true) {
                     if (inputStream.available() == 0) {
                         val buffer = ByteArray(256)
                         val num = inputStream.read(buffer)
                         if (num > 0) {
-                            val content = String(buffer.copyOf(num))
-                            sppInterface?.inputData(content)
+                            sppInterface?.inputData(buffer.copyOf(num))
                         }
                     } else {
                         Thread.sleep(200)
@@ -96,12 +95,16 @@ class SPPUtil private constructor(context: Context) {
 
     }
 
-    fun sendData(content: String) {
-        outputStream?.write(content.toByteArray())
+    fun sendData(bytes: ByteArray) {
+        outputStream?.write(bytes)
     }
 
     fun disconnect() {
-        bleSocket?.close()
+        mBluetoothSocket?.close()
+    }
+
+    fun boundDevices():Set<BluetoothDevice>{
+        return mAdapter.bondedDevices
     }
 
 }
