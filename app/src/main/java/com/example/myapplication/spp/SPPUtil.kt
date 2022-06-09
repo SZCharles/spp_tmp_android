@@ -1,4 +1,4 @@
-package com.example.myapplication.util
+package com.example.myapplication.spp
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -6,7 +6,6 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import android.content.Context
-import com.example.myapplication.impl.SPPInterface
 import java.io.OutputStream
 import java.util.*
 
@@ -20,7 +19,8 @@ class SPPUtil private constructor(context: Context) {
     private val mAdapter: BluetoothAdapter =
         (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
 
-    private val sppUUID: UUID = UUID.fromString("78DB4F90-DDF7-4A83-92E9-3CE422C89975")
+    private val sppUUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+//    private val sppUUID: UUID = UUID.fromString("78DB4F90-DDF7-4A83-92E9-3CE422C89975")
 
     private var connecting = false
 
@@ -88,7 +88,7 @@ class SPPUtil private constructor(context: Context) {
                 }
             } catch (e: Exception) {
                 connecting = false
-                sppInterface?.connectFail()
+                e.message?.let { sppInterface?.connectFail(it) }
             }
 
         }.start()
@@ -97,6 +97,7 @@ class SPPUtil private constructor(context: Context) {
 
     fun sendData(bytes: ByteArray) {
         outputStream?.write(bytes)
+        sppInterface?.outputData(bytes)
     }
 
     fun disconnect() {
