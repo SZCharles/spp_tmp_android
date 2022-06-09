@@ -1,64 +1,143 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:layout_height="match_parent">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:orientation="vertical"
-        tools:ignore="UselessParent">
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
 
-        <TextView
-            android:id="@+id/tv_main_content"
+        <ListView
+            android:id="@+id/lv_main"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAlignment="center" />
-
-        <EditText
-            android:id="@+id/ed_main_name"
-            android:layout_width="250dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:autofillHints="string|reference"
-            android:hint="@string/ed_hint_mac"
-            android:inputType="text"
-            android:singleLine="true"
-            android:text="@string/device_default_name"
-            tools:ignore="LabelFor" />
-
-        <Button
-            android:id="@+id/btn_main_trigger"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="@string/start" />
+            android:layout_height="450dp"
+            android:transcriptMode="alwaysScroll" />
+        <!--    <TextView-->
+        <!--        android:id="@+id/tv_main_content"-->
+        <!--        android:layout_width="match_parent"-->
+        <!--        android:layout_height="wrap_content"-->
+        <!--        android:layout_centerInParent="true"-->
+        <!--        android:text="@string/app_name"-->
+        <!--        android:textAlignment="center" />-->
 
         <LinearLayout
-            android:id="@+id/row_main_send"
-            android:layout_width="wrap_content"
+            android:id="@+id/ll_connect_layout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_gravity="center_horizontal"
-            android:visibility="gone">
+            android:layout_below="@id/lv_main"
+            android:layout_centerHorizontal="true"
+            android:orientation="vertical"
+            tools:ignore="UselessParent">
 
-            <EditText
-                android:id="@+id/ed_main_content"
-                android:layout_width="250dp"
-                android:layout_height="wrap_content" />
-
-            <Button
-                android:id="@+id/btn_main_send"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/send" />
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/device_name" />
+
+                <EditText
+                    android:id="@+id/ed_main_name"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="20dp"
+                    android:autofillHints="string|reference"
+                    android:hint="@string/ed_hint_mac"
+                    android:inputType="text"
+                    android:singleLine="true"
+                    android:text="@string/device_default_name"
+                    tools:ignore="LabelFor" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_test_scan_main"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:text="@string/test_from_scan" />
+
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btn_test_bound"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/test_from_bound" />
+            </LinearLayout>
+
         </LinearLayout>
-    </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/ll_main_send"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lv_main"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical"
+            android:visibility="gone">
 
-</RelativeLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/send_title" />
+
+                <EditText
+                    android:id="@+id/ed_main_content"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="20dp" />
+
+                <Button
+                    android:id="@+id/btn_main_send"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/send" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_get_device_version"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/get_device_version" />
+
+            <Button
+                android:id="@+id/btn_get_device_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/get_device_id" />
+
+            <Button
+                android:id="@+id/btn_get_auth_version"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/get_auth_version" />
+        </LinearLayout>
+
+    </RelativeLayout>
+</ScrollView>

@@ -7,8 +7,21 @@
     <string name="send">Send</string>
     <string name="found_hint">Found the device: %1$s</string>
     <string name="latest_data">Latest Data: %1$s</string>
-    <string name="device_default_name">HC-04</string>
+    <string name="device_default_name">NV</string>
     <string name="connecting">Connecting</string>
-    <string name="connect_fail">Connect Fail</string>
+    <string name="err_hint">Err: %1$s</string>
     <string name="connected">Connected</string>
+    <string name="send_title">Version</string>
+    <string name="device_name">Device Name</string>
+    <string name="bound_device_discover">Found device: %1$s  , Mac: %2$s</string>
+    <string name="test_from_bound">Test From Bound</string>
+    <string name="test_from_scan">Test From Scan</string>
+    <string name="device_version_info">Device Version: %1$s</string>
+    <string name="device_id_info">Device modelID: %1$s, Device vendorID: %2$s, </string>
+    <string name="auth_version_info">Device ID: %1$s</string>
+    <string name="from_device">Device: %1$s</string>
+    <string name="from_phone">Phone: %1$s</string>
+    <string name="get_device_version">Get Device Version</string>
+    <string name="get_device_id">Get Device ID</string>
+    <string name="get_auth_version">Get Auth Version</string>
 </resources>
