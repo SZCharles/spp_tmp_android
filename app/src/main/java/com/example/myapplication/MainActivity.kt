@@ -16,11 +16,11 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.message.*
 import com.example.myapplication.message.bean.NVMessage
 import com.example.myapplication.spp.SPPInterface
-import com.example.myapplication.protocol.BLEMessagePayload
+import com.example.myapplication.protocol.DeviceMessagePayload
 import com.example.myapplication.spp.SPPUtil
 
 @SuppressLint("MissingPermission")
-class MainActivity : AppCompatActivity(), View.OnClickListener, SPPInterface, MessageObserver {
+class MainActivity : AppCompatActivity(), View.OnClickListener, SPPInterface, MessageOutput {
     private lateinit var mEdName: EditText
     private lateinit var mEdContent: EditText
     private lateinit var deviceReceiver: DeviceReceiver
@@ -53,8 +53,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, SPPInterface, Me
         findViewById<Button>(R.id.btn_get_device_version).setOnClickListener(this)
         findViewById<Button>(R.id.btn_get_auth_version).setOnClickListener(this)
         findViewById<Button>(R.id.btn_get_device_id).setOnClickListener(this)
+        findViewById<Button>(R.id.btn_start_auth).setOnClickListener(this)
         SPPUtil.getInstance(this).setListen(this)
-        MessageController.addObserver(this)
+        MessageController.setOutputListen(this)
     }
 
     private fun initView() {
@@ -100,6 +101,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, SPPInterface, Me
             R.id.btn_get_device_version -> getDeviceVersion()
             R.id.btn_get_auth_version -> getAuthVersion()
             R.id.btn_get_device_id -> getDeviceID()
+            R.id.btn_start_auth -> MessageController.start()
         }
     }
 
@@ -147,7 +149,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, SPPInterface, Me
         val content: String = mEdContent.text.toString()
         mEdContent.text.clear()
         val version =
-            BLEMessagePayload.DeviceVersion.newBuilder().setFirmwareVersion(content).build()
+            DeviceMessagePayload.DeviceVersion.newBuilder().setFirmwareVersion(content).build()
         val message = NVMessage(
             NVClass.DEVICE_INFO, DeviceInfoId.DEVICE_VERSION.value,
             NVOperators.GET, version.toByteArray()
@@ -200,7 +202,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, SPPInterface, Me
     // Get from SPP Data
     override fun inputData(content: ByteArray) {
         addContent(getString(R.string.from_device, bytesToHex(content)))
-        MessageController.putBytes(content)
+        MessageController.inputBytes(content)
     }
 
     override fun outputData(content: ByteArray) {
@@ -223,7 +225,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, SPPInterface, Me
         super.onDestroy()
         unregisterReceiver(deviceReceiver)
         SPPUtil.getInstance(this).disconnect()
-        MessageController.removeObserver(this)
     }
 
     private fun bytesToHex(bytes: ByteArray): String {
@@ -252,17 +253,21 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, SPPInterface, Me
         message.data.putString(messageDataKey, content)
         mHandler.sendMessage(message)
     }
+//
+//    override fun authVersionCallback(authVersion: DeviceMessagePayload.AuthVersion) {
+//        addContent(getString(R.string.auth_version_info, authVersion.authVer.toString()))
+//    }
+//
+//    override fun deviceVersionCallback(deviceVersion: DeviceMessagePayload.DeviceVersion) {
+//        addContent(getString(R.string.device_version_info, deviceVersion.firmwareVersion))
+//
+//    }
+//
+//    override fun deviceIdCallback(deviceID: DeviceMessagePayload.DeviceID) {
+//        addContent(getString(R.string.device_id_info, deviceID.modelID, deviceID.vendorID))
+//    }
 
-    override fun authVersionCallback(authVersion: BLEMessagePayload.AuthVersion) {
-        addContent(getString(R.string.auth_version_info, authVersion.authVer.toString()))
-    }
-
-    override fun deviceVersionCallback(deviceVersion: BLEMessagePayload.DeviceVersion) {
-        addContent(getString(R.string.device_version_info, deviceVersion.firmwareVersion))
-
-    }
-
-    override fun deviceIdCallback(deviceID: BLEMessagePayload.DeviceID) {
-        addContent(getString(R.string.device_id_info, deviceID.modelID, deviceID.vendorID))
+    override fun outputBytes(data: ByteArray) {
+        SPPUtil.getInstance(this).sendData(data)
     }
 }
