@@ -51,13 +51,6 @@ enum class NVResponseCode(val value: Int) {
 }
 
 @Suppress("unused")
-enum class DeviceInfoId(val value: Int) {
-    DEVICE_VERSION(0x00),
-    DEVICE_ID(0x01)
-}
-
-
-@Suppress("unused")
 enum class ReturnCode(val value: Int) {
     SUCCESS(0X00),
     CLASS_NOT_SUPPORTED(0X01),

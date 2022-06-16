@@ -151,7 +151,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, SPPInterface, Me
         val version =
             DeviceMessagePayload.DeviceVersion.newBuilder().setFirmwareVersion(content).build()
         val message = NVMessage(
-            NVClass.DEVICE_INFO, DeviceInfoId.DEVICE_VERSION.value,
+            NVClass.DEVICE_INFO, DeviceIDID.DEVICE_VERSION.value,
             NVOperators.GET, version.toByteArray()
         )
 
