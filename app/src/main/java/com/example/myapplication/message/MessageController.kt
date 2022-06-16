@@ -1,7 +1,10 @@
 package com.example.myapplication.message
 
+import com.example.myapplication.auth.AuthV1Controller
 import com.example.myapplication.message.bean.NVMessage
-import com.example.myapplication.protocol.BLEMessagePayload
+import com.example.myapplication.message.observers.AuthenticationObserver
+import com.example.myapplication.message.observers.DeviceInfoObserver
+import com.example.myapplication.protocol.DeviceMessagePayload
 
 /**
  * Message controller, exposed to APP for data interaction
@@ -10,17 +13,28 @@ import com.example.myapplication.protocol.BLEMessagePayload
 class MessageController {
     companion object {
 
-        private val observers: ArrayList<MessageObserver> = ArrayList()
+        private val deviceInfoObservers: ArrayList<DeviceInfoObserver> = ArrayList()
+        private val authChallengeObservers: ArrayList<AuthenticationObserver> = ArrayList()
+        private var output: MessageOutput? = null
 
-        fun addObserver(observer: MessageObserver) {
-            observers.add(observer)
+        fun addDeviceInfoObserver(observer: DeviceInfoObserver) {
+            deviceInfoObservers.add(observer)
         }
 
-        fun removeObserver(observer: MessageObserver) {
-            observers.remove(observer)
+        fun removeDeviceInfoObserver(observer: DeviceInfoObserver) {
+            deviceInfoObservers.remove(observer)
         }
 
-        fun putBytes(bytes: ByteArray) {
+        fun addAuthenticationObserver(observer: AuthenticationObserver) {
+            authChallengeObservers.add(observer)
+        }
+
+        fun removeAuthenticationObserver(observer: AuthenticationObserver) {
+            authChallengeObservers.remove(observer)
+        }
+
+        // input data entry
+        fun inputBytes(bytes: ByteArray) {
             val message = MessageUtil.decodeMessage(bytes)
             if (message != null) {
                 when (message.header.nvClass) {
@@ -31,6 +45,18 @@ class MessageController {
             }
         }
 
+        fun outputBytes(bytes: ByteArray) {
+            output?.outputBytes(bytes)
+        }
+
+        fun setOutputListen(output: MessageOutput) {
+            this.output = output
+        }
+
+        fun start() {
+            val message = NVMessage(NVClass.AUTH, AuthenticationID.VERSION.value, NVOperators.GET)
+            outputBytes(message.toBytes())
+        }
 
         /**
          * Device Version	0x00
@@ -41,9 +67,9 @@ class MessageController {
                 0 ->
                     when (message.header.nvOperator) {
                         NVOperators.RESULT -> {
-                            for (observer in observers) {
+                            for (observer in deviceInfoObservers) {
                                 observer.deviceVersionCallback(
-                                    BLEMessagePayload.DeviceVersion.parseFrom(
+                                    DeviceMessagePayload.DeviceVersion.parseFrom(
                                         message.body
                                     )
                                 )
@@ -54,9 +80,9 @@ class MessageController {
 
                 1 -> when (message.header.nvOperator) {
                     NVOperators.RESULT -> {
-                        for (observer in observers) {
+                        for (observer in deviceInfoObservers) {
                             observer.deviceIdCallback(
-                                BLEMessagePayload.DeviceID.parseFrom(
+                                DeviceMessagePayload.DeviceID.parseFrom(
                                     message.body
                                 )
                             )
@@ -76,9 +102,23 @@ class MessageController {
          */
         private fun handleAuth(message: NVMessage) {
             when (message.header.nvId) {
-                0 -> {
-                    for (observer in observers) {
-                        observer.authVersionCallback(BLEMessagePayload.AuthVersion.parseFrom(message.body))
+                AuthenticationID.VERSION.value -> {
+                    val authVersion = DeviceMessagePayload.AuthVersion.parseFrom(
+                        message.body
+                    )
+                    if(authVersion.authVer == DeviceMessagePayload.AuthVersion.AuthVer.AUTH_V1){
+                        AuthV1Controller.getInstance().startAuth()
+                    }else if(authVersion.authVer == DeviceMessagePayload.AuthVersion.AuthVer.AUTH_V2){
+                        TODO("Auth_V2 has not been implemented yet")
+                    }
+                }
+                AuthenticationID.VERIFY_SECRET.value -> {
+                    for (observer in authChallengeObservers) {
+                        observer.authChallengeResultCallback(
+                            DeviceMessagePayload.ChallengeResult.parseFrom(
+                                message.body
+                            )
+                        )
                     }
                 }
                 else -> TODO("Not yet supported")

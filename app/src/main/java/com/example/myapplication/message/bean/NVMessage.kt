@@ -2,7 +2,6 @@ package com.example.myapplication.message.bean
 
 import NVMessageHeader
 import com.example.myapplication.message.NVClass
-import com.example.myapplication.message.NVFlags
 import com.example.myapplication.message.NVOperators
 import com.example.myapplication.message.ReturnCode
 
