@@ -86,7 +86,7 @@ class AuthV1Controller private constructor() : DeviceInfoObserver, Authenticatio
      */
     override fun authChallengeResultCallback(result: DeviceMessagePayload.ChallengeResult) {
         if (text != null && product != null) {
-            val resultText = AESEncrypt.decryptOnlyText(
+            val resultText = AESEncrypt.decrypt(
                 key = product!!.aesKey.decodeHex(),
                 iv = iv!!,
                 encryptedData = result.chiperAndTag.toByteArray()

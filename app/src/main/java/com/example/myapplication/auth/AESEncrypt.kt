@@ -14,7 +14,7 @@ object AESEncrypt {
     const val TEXT_LENGTH = 16
     const val IV_LENGTH = 12
 
-    private fun decrypt(key: ByteArray, iv: ByteArray, encryptedData: ByteArray): ByteArray {
+    fun decrypt(key: ByteArray, iv: ByteArray, encryptedData: ByteArray): ByteArray {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         val spec = GCMParameterSpec(TAG_LENGTH * 8, iv)
         cipher.init(Cipher.DECRYPT_MODE, getSecretKeyFromString(key), spec)
@@ -23,11 +23,6 @@ object AESEncrypt {
 
     private fun getSecretKeyFromString(key: ByteArray): SecretKey {
         return SecretKeySpec(key, 0, key.size, "AES")
-    }
-
-    fun decryptOnlyText(key: ByteArray, iv: ByteArray, encryptedData: ByteArray): ByteArray {
-        val result = decrypt(key, iv, encryptedData)
-        return result.copyOfRange(0, result.size - TAG_LENGTH)
     }
 
 }

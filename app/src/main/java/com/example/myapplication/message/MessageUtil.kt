@@ -19,8 +19,14 @@ class MessageUtil {
                 // Not long enough to body parse
                 return null
             }
-            val bodyData = data.copyOfRange(header.nvHeaderLength, header.nvPayloadLength+header.nvHeaderLength)
-            data = data.copyOfRange(header.nvPayloadLength+header.nvHeaderLength, data.size)
+            val bodyData = data.copyOfRange(
+                header.nvHeaderLength,
+                header.nvPayloadLength + header.nvHeaderLength
+            )
+//            data = data.copyOfRange(header.nvPayloadLength+header.nvHeaderLength, data.size)
+            //TODO： TMP, Because the length of the data sent by the firmware is incorrect,
+            // it is temporarily processed.
+            data = ByteArray(0)
             return NVMessage(header, bodyData)
         }
     }

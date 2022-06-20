@@ -19,8 +19,8 @@ class SPPUtil private constructor(context: Context) {
     private val mAdapter: BluetoothAdapter =
         (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
 
-    private val sppUUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-//    private val sppUUID: UUID = UUID.fromString("78DB4F90-DDF7-4A83-92E9-3CE422C89975")
+//    private val sppUUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+    private val sppUUID: UUID = UUID.fromString("78DB4F90-DDF7-4A83-92E9-3CE422C89975")
 
     private var connecting = false
 
