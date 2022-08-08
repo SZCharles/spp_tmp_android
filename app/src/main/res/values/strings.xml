@@ -25,4 +25,5 @@
     <string name="get_device_id">Get Device ID</string>
     <string name="get_auth_version">Get Auth Version</string>
     <string name="start_auth">Start Auth</string>
+    <string name="opus_pcm">OPUS TO PCM</string>
 </resources>

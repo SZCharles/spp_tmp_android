@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.*
 import android.util.Log
 import android.view.View
@@ -18,6 +19,11 @@ import com.example.myapplication.message.bean.NVMessage
 import com.example.myapplication.spp.SPPInterface
 import com.example.myapplication.protocol.DeviceMessagePayload
 import com.example.myapplication.spp.SPPUtil
+import com.theeasiestway.opus.Constants
+import com.theeasiestway.opus.Opus
+import kotlinx.coroutines.*
+import java.io.File
+import java.io.FileOutputStream
 
 @SuppressLint("MissingPermission")
 class MainActivity : AppCompatActivity(), View.OnClickListener, SPPInterface, MessageOutput {
@@ -54,6 +60,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, SPPInterface, Me
         findViewById<Button>(R.id.btn_get_auth_version).setOnClickListener(this)
         findViewById<Button>(R.id.btn_get_device_id).setOnClickListener(this)
         findViewById<Button>(R.id.btn_start_auth).setOnClickListener(this)
+        findViewById<Button>(R.id.btn_test_opus).setOnClickListener(this)
         SPPUtil.getInstance(this).setListen(this)
         MessageController.setOutputListen(this)
     }
@@ -102,21 +109,22 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, SPPInterface, Me
             R.id.btn_get_auth_version -> getAuthVersion()
             R.id.btn_get_device_id -> getDeviceID()
             R.id.btn_start_auth -> MessageController.start()
+//            R.id.btn_test_opus -> decode2PCM()
         }
     }
 
-    private fun getDeviceVersion(){
-        val message = NVMessage(NVClass.DEVICE_INFO,0,NVOperators.GET)
+    private fun getDeviceVersion() {
+        val message = NVMessage(NVClass.DEVICE_INFO, 0, NVOperators.GET)
         SPPUtil.getInstance(this).sendData(message.toBytes())
     }
 
-    private fun getDeviceID(){
-        val message = NVMessage(NVClass.DEVICE_INFO,1,NVOperators.GET)
+    private fun getDeviceID() {
+        val message = NVMessage(NVClass.DEVICE_INFO, 1, NVOperators.GET)
         SPPUtil.getInstance(this).sendData(message.toBytes())
     }
 
-    private fun getAuthVersion(){
-        val message = NVMessage(NVClass.AUTH,0,NVOperators.GET)
+    private fun getAuthVersion() {
+        val message = NVMessage(NVClass.AUTH, 0, NVOperators.GET)
         SPPUtil.getInstance(this).sendData(message.toBytes())
     }
 
@@ -203,6 +211,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, SPPInterface, Me
     override fun inputData(content: ByteArray) {
         addContent(getString(R.string.from_device, bytesToHex(content)))
         MessageController.inputBytes(content)
+//        NativeVoiceIOT.
     }
 
     override fun outputData(content: ByteArray) {
@@ -269,5 +278,60 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, SPPInterface, Me
 
     override fun outputBytes(data: ByteArray) {
         SPPUtil.getInstance(this).sendData(data)
+    }
+
+    override fun print(content: String) {
+        addContent(content)
+    }
+
+    private fun decode2PCM() {
+        if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            return
+        }
+        val opus = Opus()
+        opus.decoderInit(Constants.SampleRate._48000(), Constants.Channels.mono())
+        runBlocking {
+            var fileData = ByteArray(0)
+            var pcmData: ByteArray? = ByteArray(0)
+            val readFile = async {
+                val inputStream = resources.assets.open("sample.opus")
+                var reading = true
+                while (reading) {
+                    val buffer = ByteArray(2048)
+                    val readLength = inputStream.read(buffer)
+                    if (readLength > 0) {
+                        fileData += buffer.copyOfRange(0, readLength)
+                    } else {
+                        reading = false
+                    }
+                }
+            }
+            val pcmDataRequest = async {
+                pcmData = opus.decode(fileData, Constants.FrameSize._120())
+                Log.d("Charles","opus finish")
+                println("来啦")
+            }
+            val outputToFile = async {
+                if(pcmData==null){
+                    return@async
+                }
+                val file = File("/sdcard", "test23.pcm")
+                if (!file.exists()) {
+                    file.createNewFile()
+                }
+                val output = FileOutputStream(file, false)
+                output.write(pcmData)
+                output.close()
+            }
+
+            withContext(Dispatchers.IO) {
+                readFile.await()
+                pcmDataRequest.await()
+                outputToFile.await()
+                Log.d("Charles", "Finished")
+            }
+
+        }
+
     }
 }

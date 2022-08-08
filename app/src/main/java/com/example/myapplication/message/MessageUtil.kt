@@ -8,8 +8,20 @@ class MessageUtil {
     companion object {
         private var data: ByteArray = ByteArray(0)
 
-        fun decodeMessage(bytes: ByteArray): NVMessage? {
+        fun decodeMessages(bytes: ByteArray): List<NVMessage> {
+            val messages = ArrayList<NVMessage>()
             data += bytes
+            while (true) {
+                val message = decodeMessage()
+                if (message != null) {
+                    messages.add(message)
+                } else {
+                    return messages
+                }
+            }
+        }
+
+        private fun decodeMessage(): NVMessage? {
             // Not long enough to header parse
             if (data.size < 5) {
                 return null
@@ -23,10 +35,7 @@ class MessageUtil {
                 header.nvHeaderLength,
                 header.nvPayloadLength + header.nvHeaderLength
             )
-//            data = data.copyOfRange(header.nvPayloadLength+header.nvHeaderLength, data.size)
-            //TODO： TMP, Because the length of the data sent by the firmware is incorrect,
-            // it is temporarily processed.
-            data = ByteArray(0)
+            data = data.copyOfRange(header.nvPayloadLength + header.nvHeaderLength, data.size)
             return NVMessage(header, bodyData)
         }
     }

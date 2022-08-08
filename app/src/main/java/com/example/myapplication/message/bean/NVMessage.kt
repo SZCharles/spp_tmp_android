@@ -20,7 +20,7 @@ class NVMessage {
         nvOperator: NVOperators,
         body: ByteArray = ByteArray(0),
         encrypted: Boolean = false,
-        nvResultCode: ReturnCode? = null
+        nvResultCode: ReturnCode = ReturnCode.SUCCESS
     ) {
         this.body = body
         this.header = NVMessageHeader(nvClass, nvId, nvOperator, body.size, encrypted,nvResultCode)

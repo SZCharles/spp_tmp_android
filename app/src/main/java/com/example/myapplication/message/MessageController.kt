@@ -1,5 +1,6 @@
 package com.example.myapplication.message
 
+import com.example.myapplication.audio.SPPAudioController
 import com.example.myapplication.auth.AuthV1Controller
 import com.example.myapplication.message.bean.NVMessage
 import com.example.myapplication.message.observers.AuthenticationObserver
@@ -35,11 +36,11 @@ class MessageController {
 
         // input data entry
         fun inputBytes(bytes: ByteArray) {
-            val message = MessageUtil.decodeMessage(bytes)
-            if (message != null) {
+            val messages = MessageUtil.decodeMessages(bytes)
+            for (message in messages) {
                 when (message.header.nvClass) {
                     NVClass.DEVICE_INFO -> handleDeviceInfo(message)
-                    NVClass.VOICE_SESSION -> TODO("Not yet supported")
+                    NVClass.VOICE_SESSION -> handleAudio(message)
                     NVClass.AUTH -> handleAuth(message)
                 }
             }
@@ -75,7 +76,7 @@ class MessageController {
                                 )
                             }
                         }
-                        else -> TODO("Not yet supported")
+                        else -> {}
                     }
 
                 1 -> when (message.header.nvOperator) {
@@ -88,7 +89,7 @@ class MessageController {
                             )
                         }
                     }
-                    else -> TODO("Not yet supported")
+                    else -> {}
                 }
             }
         }
@@ -106,11 +107,12 @@ class MessageController {
                     val authVersion = DeviceMessagePayload.AuthVersion.parseFrom(
                         message.body
                     )
-                    if(authVersion.authVer == DeviceMessagePayload.AuthVersion.AuthVer.AUTH_V1){
+                    if (authVersion.authVer == DeviceMessagePayload.AuthVersion.AuthVer.AUTH_V1) {
                         AuthV1Controller.getInstance().startAuth()
-                    }else if(authVersion.authVer == DeviceMessagePayload.AuthVersion.AuthVer.AUTH_V2){
-                        TODO("Auth_V2 has not been implemented yet")
                     }
+                    // TODO: "Auth_V2 has not been implemented yet"
+//                    else if (authVersion.authVer == DeviceMessagePayload.AuthVersion.AuthVer.AUTH_V2) {
+//                    }
                 }
                 AuthenticationID.VERIFY_SECRET.value -> {
                     for (observer in authChallengeObservers) {
@@ -121,9 +123,23 @@ class MessageController {
                         )
                     }
                 }
-                else -> TODO("Not yet supported")
+            }
+        }
+
+        private fun handleAudio(message: NVMessage) {
+            when (message.header.nvId) {
+                AudioID.START.value -> {
+                    SPPAudioController.getInstance().startSpeech()
+                }
+                AudioID.STREAM.value -> {
+                    println("handle" + message.header.nvIndex)
+                    SPPAudioController.getInstance().notifyStream(message.body)
+                }
+                AudioID.START_RESPONSE_NOTIFY.value -> {
+//                    val response = DeviceMessagePayload.StartResponse.parseFrom(message.body)
+//                    SPPAudioController.getInstance().responseData(response)
+                }
             }
         }
     }
-
 }

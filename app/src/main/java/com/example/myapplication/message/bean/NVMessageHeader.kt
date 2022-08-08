@@ -21,6 +21,7 @@ class NVMessageHeader {
     val nvPayloadLength: Int
     val nvHeaderLength: Int
     var nvResultCode: ReturnCode? = null
+    var nvIndex: Int? = null
 
 
     constructor(
@@ -29,18 +30,24 @@ class NVMessageHeader {
         nvOperator: NVOperators,
         nvPayloadLength: Int,
         encrypted: Boolean = false,
-        nvResultCode: ReturnCode? = null
+        nvResultCode: ReturnCode = ReturnCode.SUCCESS
     ) {
         this.nvClass = nvClass
         this.nvId = nvId
         this.nvOperator = nvOperator
         this.nvPayloadLength = nvPayloadLength
         this.nvFlags = ArrayList()
+        val headerLength: Int
         if (nvPayloadLength > 0xFF) {
             this.nvFlags.add(NVFlags.ZEROTH_LENGTH)
-            this.nvHeaderLength = 5
+            headerLength = 5
         } else {
-            this.nvHeaderLength = 4
+            headerLength = 4
+        }
+        if (this.nvOperator == NVOperators.RESULT) {
+            this.nvHeaderLength = headerLength + 1
+        }else{
+            this.nvHeaderLength = headerLength
         }
         if (encrypted) {
             this.nvFlags.add(NVFlags.FIRST_ENCRYPTED)
@@ -52,10 +59,10 @@ class NVMessageHeader {
      * from Raw data
      */
     constructor(bytes: ByteArray) {
-        val classValue = bytes[0].toInt()
-        val idValue = bytes[1].toInt()
-        val flagValue = bytes[2].toInt() and 0xF
-        val operatorValue = (bytes[2].toInt() shr 4) and 0xF
+        val classValue = bytes[0].toPositiveInt()
+        val idValue = bytes[1].toPositiveInt()
+        val flagValue = bytes[2].toPositiveInt() and 0xF
+        val operatorValue = (bytes[2].toPositiveInt() shr 4) and 0xF
 
         this.nvClass = NVClass.values().find { it.value == classValue }
             ?: throw IllegalArgumentException("no value for class")
@@ -65,15 +72,16 @@ class NVMessageHeader {
             ?: throw IllegalArgumentException("no value for operator")
         val headerLength: Int
         if (nvFlags.contains(NVFlags.ZEROTH_LENGTH)) {
-            nvPayloadLength = (bytes[3].toInt() shl 8) or bytes[4].toInt()
+            nvPayloadLength = bytes[3].toPositiveInt()
+            nvIndex = bytes[4].toPositiveInt()
             headerLength = 5
         } else {
-            nvPayloadLength = bytes[3].toInt()
+            nvPayloadLength = bytes[3].toPositiveInt()
             headerLength = 4
         }
         if (this.nvOperator == NVOperators.RESULT) {
             this.nvHeaderLength = headerLength + 1
-            this.nvResultCode = ReturnCode.values().find { it.value == bytes[headerLength].toInt() }
+            this.nvResultCode = ReturnCode.values().find { it.value == bytes[headerLength].toPositiveInt() }
                 ?: throw IllegalArgumentException("no value for return code")
         } else {
             this.nvHeaderLength = headerLength
@@ -113,4 +121,7 @@ class NVMessageHeader {
         }
         return value
     }
+
+    private fun Byte.toPositiveInt() = toInt() and 0xFF
+
 }

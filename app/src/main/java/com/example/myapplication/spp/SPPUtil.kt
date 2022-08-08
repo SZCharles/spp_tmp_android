@@ -6,6 +6,9 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import android.content.Context
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.OutputStream
 import java.util.*
 
@@ -19,14 +22,11 @@ class SPPUtil private constructor(context: Context) {
     private val mAdapter: BluetoothAdapter =
         (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
 
-//    private val sppUUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
     private val sppUUID: UUID = UUID.fromString("78DB4F90-DDF7-4A83-92E9-3CE422C89975")
 
     private var connecting = false
 
     private var sppInterface: SPPInterface? = null
-
-    private var outputStream: OutputStream? = null
 
     private var mBluetoothSocket: BluetoothSocket? = null
 
@@ -53,6 +53,9 @@ class SPPUtil private constructor(context: Context) {
 
     }
 
+    /**
+     * Scan BLE device
+     */
     fun startScan() {
         stopScan()
         mAdapter.startDiscovery()
@@ -67,23 +70,23 @@ class SPPUtil private constructor(context: Context) {
         if (connecting) {
             return
         }
-        mBluetoothSocket = device.createInsecureRfcommSocketToServiceRecord(sppUUID)
+        mBluetoothSocket = device.createRfcommSocketToServiceRecord(sppUUID)
         connecting = true
         Thread {
             try {
                 mBluetoothSocket!!.connect()
                 sppInterface?.connected()
                 val inputStream = mBluetoothSocket!!.inputStream
-                outputStream = mBluetoothSocket!!.outputStream
                 while (true) {
-                    if (inputStream.available() == 0) {
-                        val buffer = ByteArray(256)
-                        val num = inputStream.read(buffer)
-                        if (num > 0) {
-                            sppInterface?.inputData(buffer.copyOf(num))
-                        }
-                    } else {
-                        Thread.sleep(200)
+                    val buffer = ByteArray(2048)
+                    val num = inputStream.read(buffer)
+                    if (num > 0) {
+//                        runBlocking {
+//                            withContext(Dispatchers.Main){
+//                                sppInterface?.inputData(buffer.copyOf(num))
+//                            }
+//                        }
+                        sppInterface?.inputData(buffer.copyOf(num))
                     }
                 }
             } catch (e: Exception) {
@@ -96,15 +99,16 @@ class SPPUtil private constructor(context: Context) {
     }
 
     fun sendData(bytes: ByteArray) {
-        outputStream?.write(bytes)
+        mBluetoothSocket?.outputStream?.write(bytes)
         sppInterface?.outputData(bytes)
     }
 
     fun disconnect() {
         mBluetoothSocket?.close()
+        mBluetoothSocket = null
     }
 
-    fun boundDevices():Set<BluetoothDevice>{
+    fun boundDevices(): Set<BluetoothDevice> {
         return mAdapter.bondedDevices
     }
 
